@@ -6,6 +6,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import GroupUpload from "./components/GroupUpload";
 import { testHighlights } from "./test-highlights";
 
+import 'react-toastify/dist/ReactToastify.css';
+import { IHighlight } from "react-pdf-highlighter";
+
 type ExtractType = 'extract_type_block' | 'extract_type_sentence';
 
 export default function Home() {
@@ -46,6 +49,11 @@ export default function Home() {
     setExtractType(e.target.value === 'extract_type_block' ? 'extract_type_block' : 'extract_type_sentence');
   }
 
+  // in milisecond
+  const delay = (time:number) => {
+    return new Promise(resolve => setTimeout(resolve, time));
+  }
+
   const onSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (!targetPdfFile.current) {
       alert('Please chose target pdf!');
@@ -59,35 +67,43 @@ export default function Home() {
     setSubmitDisabled(true);
 
     var myHeaders = new Headers();
-    myHeaders.append("accept", "application/json");
+    myHeaders.append('accept', 'application/json');
 
     var formdata = new FormData();
-    formdata.append("extract_type", "block");
-    formdata.append("similarity_score", sScore.toString());
-    formdata.append("target_file", targetPdfFile.current as Blob, targetPdfFile.current?.name);
+    formdata.append('extract_type', 'block');
+    formdata.append('similarity_score', sScore.toString());
+    formdata.append('target_file', targetPdfFile.current as Blob, targetPdfFile.current?.name);
     refPdfFiles.current?.forEach((file) => {
-      formdata.append("references_file", file, file.name);
+      formdata.append('references_file', file, file.name);
     });
 
     const requestOptions = {
       method: 'POST',
       headers: myHeaders,
       body: formdata,
-      redirect: 'follow'
+      redirect: 'follow',
+      keepalive: true,
     } as RequestInit;
 
-    toastId.current = toast.loading("Loading...")
-    // navigate('/viewer', { replace: true, state: testHighlights });
-    fetch("http://192.168.1.107:9007/upload", requestOptions)
+    toastId.current = toast.loading('Loading the result...');
+    // Faking
+    // await delay(2000);
+    // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
+    // navigate('/viewer', { replace: true, state: dataTest1 });
+
+    fetch('http://192.168.1.107:9007/upload', requestOptions)
       .then(response => response.text())
       .then(result => {
         console.log('rs', result);
-        toast.update(toastId.current, { render: "All is good", type: "success", isLoading: false });
+        toast.update(toastId.current, { render: 'Process done', type: 'success', isLoading: false, closeButton: true });
         navigate('/viewer', { replace: true, state: {} });
       })
       .catch(error => {
-        alert('Error: ' + error)
-      }).finally(()=> setSubmitDisabled(false));
+        toast.update(toastId.current, { render: 'Process error: Internal server error!', type: 'error', isLoading: false, closeButton: true });
+      }).finally(() => {
+        setSubmitDisabled(false);
+      });
+
     // try{
     //   // const res = await fetch("http://192.168.1.107:9007/upload", requestOptions);
     //   const res = testHighlights;
@@ -102,6 +118,12 @@ export default function Home() {
     // } catch(e){
     //   alert(e);
     // }
+  }
+
+  const submit = async (requestOptions: RequestInit) => {
+    const res = await fetch("http://192.168.1.107:9007/upload", requestOptions);
+    console.log({ res });
+    return res;
   }
 
   return (
@@ -144,7 +166,8 @@ export default function Home() {
                 id="extract_type_sentence"
                 value="extract_type_sentence"
                 onChange={onExtractTypeChange}
-                checked={extractType === 'extract_type_sentence'} />
+                checked={extractType === 'extract_type_sentence'} 
+                disabled={true}/>
               <label
                 className="text-black"
                 htmlFor="extract_type_sentence">
@@ -168,7 +191,45 @@ export default function Home() {
           Submit
         </button>
       </div>
-
+      <ToastContainer />
     </>
   );
+}
+
+// const dataTest1 :Record<string, Array<IHighlight>> = {
+const dataTest1 = {
+  "http://192.168.1.107:9007/results/test.pdf": [
+      {
+          "content": {
+              "text": "Development and training of the neural network model."
+          },
+          "position": {
+              "pageNumber": 3,
+              "rects": [
+                  {
+                      "x1": 228.43191176470583,
+                      "y1": 288.72030303030317,
+                      "x2": 565.1701967230391,
+                      "y2": 303.81515151515157,
+                      "width": 810,
+                      "height": 1200
+                  }
+              ],
+              "boundingRect": {
+                  "x1": 228.43191176470583,
+                  "y1": 288.72030303030317,
+                  "x2": 565.1701967230391,
+                  "y2": 303.81515151515157,
+                  "width": 810,
+                  "height": 1200,
+                  "pageNumber": 3
+              }
+          },
+          "comment": {
+              "text": "Reference text: This section describes the training regime for our models. \n \n Reference path: paper.pdf \n \n Reference page: 6 \n \n Explaination: Both strings discuss the process of preparing a model for machine learning tasks. The first string explicitly mentions the development and training of a neural network model, which is a type of machine learning model. The second string refers to the training regime for models, which implies the process of training a model to improve its performance. The training regime could include various steps such as data preprocessing, model selection, and model evaluation. Therefore, both strings are related as they discuss the same topic of model training in machine learning.\n                                    ",
+              "comment": "🔥"
+          },
+          "id": "1123"
+      }
+  ]
 }
