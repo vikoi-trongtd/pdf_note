@@ -70,7 +70,7 @@ export default function Home() {
     myHeaders.append('accept', 'application/json');
 
     var formdata = new FormData();
-    formdata.append('extract_type', 'block');
+    formdata.append('extract_type', extractType ==="extract_type_block" ? 'block' : 'sentence');
     formdata.append('similarity_score', sScore.toString());
     formdata.append('target_file', targetPdfFile.current as Blob, targetPdfFile.current?.name);
     refPdfFiles.current?.forEach((file) => {
@@ -87,16 +87,17 @@ export default function Home() {
 
     toastId.current = toast.loading('Loading the result...');
     // Faking
-    // await delay(2000);
+    // await delay(1000);
     // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
-    // navigate('/viewer', { replace: true, state: dataTest1 });
+    // navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
 
     fetch('http://192.168.1.107:9007/upload', requestOptions)
-      .then(response => response.text())
+      .then(response => response.json())
       .then(result => {
         console.log('rs', result);
         toast.update(toastId.current, { render: 'Process done', type: 'success', isLoading: false, closeButton: true });
-        navigate('/viewer', { replace: true, state: {} });
+        navigate(`/viewer?url=${encodeURIComponent(Object.keys(result)[0])}`, { replace: true, state: result });
+        // navigate(`/viewer`, { replace: true, state: {} });
       })
       .catch(error => {
         toast.update(toastId.current, { render: 'Process error: Internal server error!', type: 'error', isLoading: false, closeButton: true });
@@ -129,6 +130,7 @@ export default function Home() {
   return (
     <>
       <div className="flex flex-col items-stretch	justify-self-center mx-40 min-w-[700px]">
+      <h1 className="my-10 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center"> AIMESOFT Demo</h1>
         <div className="flex flex-row gap-x-4">
           <GroupUpload
             className=""
@@ -167,7 +169,7 @@ export default function Home() {
                 value="extract_type_sentence"
                 onChange={onExtractTypeChange}
                 checked={extractType === 'extract_type_sentence'} 
-                disabled={true}/>
+                />
               <label
                 className="text-black"
                 htmlFor="extract_type_sentence">

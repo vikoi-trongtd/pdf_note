@@ -237,6 +237,7 @@
 
 
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   PdfLoader,
   PdfHighlighter,
@@ -247,12 +248,11 @@ import {
 } from "./react-pdf-highlighter";
 
 import type { IHighlight, NewHighlight } from "./react-pdf-highlighter";
-import { testHighlights as _testHighlights } from "./test-highlights";
+// import { testHighlights as _testHighlights } from "./test-highlights";
 import { Spinner } from "./components/Spinner";
 import { Sidebar } from "./components/Sidebar";
 
 import "./styles/Viewer.css";
-import { useLocation } from "react-router-dom";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
 
@@ -266,25 +266,27 @@ const resetHash = () => {
 
 const HighlightPopup = ({ comment }: { comment: { text: string; emoji: string } }) =>
   comment.text ? (
-    <div className="Highlight__popup">
+    <div className="Highlight__popup" style={{width: '500px',height: '500px'}}>
       {comment.emoji} {comment.text}
     </div>
   ) : null;
 
-const PRIMARY_PDF_URL = "http://192.168.1.107:9007/results/test.pdf";
+// const PRIMARY_PDF_URL = "http://192.168.1.107:9007/results/test.pdf";
+const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 const SECONDARY_PDF_URL = "https://arxiv.org/pdf/1604.02480.pdf";
 
 const Viewer: React.FC = () => {
-  const location = useLocation();
-  const rsData = location.state;
-  console.log('rsData', rsData);
+  const rsData = useRef(useLocation().state);
+  console.log('rsData', rsData.current);
 
   const [url, setUrl] = useState<string>(
     new URLSearchParams(document.location.search).get("url") || PRIMARY_PDF_URL
   );
   const [highlights, setHighlights] = useState<Array<IHighlight>>(
-    rsData[url] ? [...rsData[url]] : []
+    rsData.current[url] ? [...rsData.current[url]] : []
   );
+
+  console.log('highlight ', highlights);
 
   const scrollViewerTo = useRef<(highlight: any) => void>(() => {});
 
@@ -338,7 +340,7 @@ const Viewer: React.FC = () => {
   const toggleDocument = () => {
     const newUrl = url === PRIMARY_PDF_URL ? SECONDARY_PDF_URL : PRIMARY_PDF_URL;
     setUrl(newUrl);
-    setHighlights(rsData[newUrl] ? [...rsData[newUrl]] : []);
+    setHighlights(rsData.current[newUrl] ? [...rsData.current[newUrl]] : []);
   };
 
   return (
