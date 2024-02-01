@@ -87,23 +87,23 @@ export default function Home() {
 
     toastId.current = toast.loading('Loading the result...');
     // Faking
-    // await delay(1000);
-    // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
-    // navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
+    await delay(1000);
+    toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
+    navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
 
-    fetch('http://192.168.1.107:9007/upload', requestOptions)
-      .then(response => response.json())
-      .then(result => {
-        console.log('rs', result);
-        toast.update(toastId.current, { render: 'Process done', type: 'success', isLoading: false, closeButton: true });
-        navigate(`/viewer?url=${encodeURIComponent(Object.keys(result)[0])}`, { replace: true, state: result });
-        // navigate(`/viewer`, { replace: true, state: {} });
-      })
-      .catch(error => {
-        toast.update(toastId.current, { render: 'Process error: Internal server error!', type: 'error', isLoading: false, closeButton: true });
-      }).finally(() => {
-        setSubmitDisabled(false);
-      });
+    // fetch('http://192.168.1.107:9007/upload', requestOptions)
+    //   .then(response => response.json())
+    //   .then(result => {
+    //     console.log('rs', result);
+    //     toast.update(toastId.current, { render: 'Process done', type: 'success', isLoading: false, closeButton: true });
+    //     navigate(`/viewer?url=${encodeURIComponent(Object.keys(result)[0])}`, { replace: true, state: result });
+    //     // navigate(`/viewer`, { replace: true, state: {} });
+    //   })
+    //   .catch(error => {
+    //     toast.update(toastId.current, { render: 'Process error: Internal server error!', type: 'error', isLoading: false, closeButton: true });
+    //   }).finally(() => {
+    //     setSubmitDisabled(false);
+    //   });
 
     // try{
     //   // const res = await fetch("http://192.168.1.107:9007/upload", requestOptions);

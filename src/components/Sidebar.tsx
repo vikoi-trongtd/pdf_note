@@ -1,5 +1,6 @@
-import React from "react";
-import type { IHighlight } from "../react-pdf-highlighter";
+import React, { useCallback, useEffect, useState, FC, useRef, LegacyRef } from "react";
+import { Highlight, IHighlight } from "../react-pdf-highlighter";
+import AIText from "./AIText";
 
 interface Props {
   highlights: Array<IHighlight>;
@@ -36,7 +37,8 @@ export function Sidebar({
         </p>
       </div>
 
-      <ul className="sidebar__highlights">
+      <ul
+        className="sidebar__highlights">
         {highlights.map((highlight, index) => (
           <li
             key={index}
@@ -46,9 +48,9 @@ export function Sidebar({
             }}
           >
             <div>
-              <strong>{highlight.comment.text}</strong>
+              <AIText displayText={highlight.comment.text} />
               {highlight.content.text ? (
-                <blockquote style={{ marginTop: "0.5rem" }}>
+                <blockquote style={{ marginTop: "0.5rem", backgroundColor:"#ffe28f" }}>
                   {`${highlight.content.text.slice(0, 50).trim()}…`}
                 </blockquote>
               ) : null}
