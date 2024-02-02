@@ -26,7 +26,7 @@ export const testHighlights = {
         pageNumber: 1,
       },
       comment: {
-        text: "Flow or TypeScript?",
+        text: "Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?Flow or TypeScript?",
         emoji: "🔥",
       },
       id: "8245652131754351",
@@ -57,7 +57,7 @@ export const testHighlights = {
         pageNumber: 1,
       },
       comment: {
-        text: "impressive",
+        text: "impressive impressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressiveimpressive impressive impressive impressive impressive impressive impressive impressive impressive impressive impressive impressive",
         emoji: "",
       },
       id: "812807243318874",
@@ -99,7 +99,7 @@ export const testHighlights = {
         pageNumber: 1,
       },
       comment: {
-        text: "immersive coding experience!",
+        text: "immersive coding experience! mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!mmersive coding experience!",
         emoji: "",
       },
       id: "2599712881412761",

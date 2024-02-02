@@ -91,7 +91,7 @@ export default function Home() {
     // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
     // navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
 
-    fetch('http://192.168.1.107:9007/upload', requestOptions)
+    fetch('http://118.70.127.230:12980/upload', requestOptions)
       .then(response => response.json())
       .then(result => {
         console.log('rs', result);
