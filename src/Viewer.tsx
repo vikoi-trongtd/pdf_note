@@ -253,6 +253,7 @@ import { Spinner } from "./components/Spinner";
 import { Sidebar } from "./components/Sidebar";
 
 import "./styles/Viewer.css";
+import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
 
@@ -276,7 +277,12 @@ const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 const SECONDARY_PDF_URL = "https://arxiv.org/pdf/1604.02480.pdf";
 
 const Viewer: React.FC = () => {
-  const rsData = useRef(useLocation().state);
+  const [savedHighlights, , ] = useLocalStorage(LSI__HIGHLIGHT);
+
+  const rsData = useRef(useLocation().state as Record<string, Array<IHighlight>>);
+  if (!rsData.current){
+    rsData.current = savedHighlights() as Record<string, Array<IHighlight>>;
+  }
   console.log('rsData', rsData.current);
 
   const [url, setUrl] = useState<string>(

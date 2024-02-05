@@ -45,11 +45,11 @@ const GroupUpload = (props: GroupUploadProps) => {
     const fileListC = [];
     if (files) {
       if (files[0]){
-        fileListC.push(<><FileCard fileName={files[0].name}></FileCard></>)
+        fileListC.push(<><FileCard key={0} fileName={files[0].name}></FileCard></>)
       }
       if (props.isMultiple){
         for (let i = 1; i < files.length; i++) {
-          fileListC.push(<><FileCard fileName={files[i].name}></FileCard></>)
+          fileListC.push(<><FileCard key={i} fileName={files[i].name}></FileCard></>)
         }
       }
     }

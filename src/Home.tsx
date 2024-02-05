@@ -4,15 +4,21 @@ import { ToastContainer, toast } from 'react-toastify';
 
 
 import GroupUpload from "./components/GroupUpload";
-import { testHighlights } from "./test-highlights";
+// import { testHighlights } from "./test-highlights";
 
 import 'react-toastify/dist/ReactToastify.css';
 import { IHighlight } from "react-pdf-highlighter";
+import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
+import { API_CHECK_PDF } from "./data/constants";
+
+const PAGE_TITLE = 'Consistency Check Demo';
 
 type ExtractType = 'extract_type_block' | 'extract_type_sentence';
 
 export default function Home() {
   const navigate = useNavigate();
+
+  const [, setSavedHighlights, clearHightlights] = useLocalStorage(LSI__HIGHLIGHT)
 
   const toastId = useRef<number | string>(0)
   const targetPdfFile = useRef<File | undefined>();
@@ -49,9 +55,9 @@ export default function Home() {
     setExtractType(e.target.value === 'extract_type_block' ? 'extract_type_block' : 'extract_type_sentence');
   }
 
-  // in milisecond
-  const delay = (time:number) => {
-    return new Promise(resolve => setTimeout(resolve, time));
+  const updateLocalStorage = (hls: Record<string, Array<IHighlight>>)=>{
+    clearHightlights();
+    setSavedHighlights(hls);
   }
 
   const onSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -91,11 +97,12 @@ export default function Home() {
     // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
     // navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
 
-    fetch('http://118.70.127.230:12980/upload', requestOptions)
+    fetch(API_CHECK_PDF, requestOptions)
       .then(response => response.json())
       .then(result => {
         console.log('rs', result);
         toast.update(toastId.current, { render: 'Process done', type: 'success', isLoading: false, closeButton: true });
+        updateLocalStorage(result);
         navigate(`/viewer?url=${encodeURIComponent(Object.keys(result)[0])}`, { replace: true, state: result });
         // navigate(`/viewer`, { replace: true, state: {} });
       })
@@ -104,33 +111,13 @@ export default function Home() {
       }).finally(() => {
         setSubmitDisabled(false);
       });
-
-    // try{
-    //   // const res = await fetch("http://192.168.1.107:9007/upload", requestOptions);
-    //   const res = testHighlights;
-
-    //   // if (!res.ok) {
-    //   //   alert('Server error');
-    //   //   return;
-    //   // }
-    //   // const data = await res.json();
-    //   // navigate('/viewer',{replace: true, state: testHighlights})
-    //   navigate('/viewer',{replace: true, state: {}})
-    // } catch(e){
-    //   alert(e);
-    // }
-  }
-
-  const submit = async (requestOptions: RequestInit) => {
-    const res = await fetch("http://192.168.1.107:9007/upload", requestOptions);
-    console.log({ res });
-    return res;
+    
   }
 
   return (
     <>
       <div className="flex flex-col items-stretch	justify-self-center mx-40 min-w-[700px]">
-      <h1 className="my-10 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center"> AIMESOFT Demo</h1>
+      <h1 className="my-10 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center"> {PAGE_TITLE}</h1>
         <div className="flex flex-row gap-x-4">
           <GroupUpload
             className=""
@@ -199,39 +186,39 @@ export default function Home() {
 }
 
 // const dataTest1 :Record<string, Array<IHighlight>> = {
-const dataTest1 = {
-  "http://192.168.1.107:9007/results/test.pdf": [
-      {
-          "content": {
-              "text": "Development and training of the neural network model."
-          },
-          "position": {
-              "pageNumber": 3,
-              "rects": [
-                  {
-                      "x1": 228.43191176470583,
-                      "y1": 288.72030303030317,
-                      "x2": 565.1701967230391,
-                      "y2": 303.81515151515157,
-                      "width": 810,
-                      "height": 1200
-                  }
-              ],
-              "boundingRect": {
-                  "x1": 228.43191176470583,
-                  "y1": 288.72030303030317,
-                  "x2": 565.1701967230391,
-                  "y2": 303.81515151515157,
-                  "width": 810,
-                  "height": 1200,
-                  "pageNumber": 3
-              }
-          },
-          "comment": {
-              "text": "Reference text: This section describes the training regime for our models. \n \n Reference path: paper.pdf \n \n Reference page: 6 \n \n Explaination: Both strings discuss the process of preparing a model for machine learning tasks. The first string explicitly mentions the development and training of a neural network model, which is a type of machine learning model. The second string refers to the training regime for models, which implies the process of training a model to improve its performance. The training regime could include various steps such as data preprocessing, model selection, and model evaluation. Therefore, both strings are related as they discuss the same topic of model training in machine learning.\n                                    ",
-              "comment": "🔥"
-          },
-          "id": "1123"
-      }
-  ]
-}
+// const dataTest1 = {
+//   "http://192.168.1.107:9007/results/test.pdf": [
+//       {
+//           "content": {
+//               "text": "Development and training of the neural network model."
+//           },
+//           "position": {
+//               "pageNumber": 3,
+//               "rects": [
+//                   {
+//                       "x1": 228.43191176470583,
+//                       "y1": 288.72030303030317,
+//                       "x2": 565.1701967230391,
+//                       "y2": 303.81515151515157,
+//                       "width": 810,
+//                       "height": 1200
+//                   }
+//               ],
+//               "boundingRect": {
+//                   "x1": 228.43191176470583,
+//                   "y1": 288.72030303030317,
+//                   "x2": 565.1701967230391,
+//                   "y2": 303.81515151515157,
+//                   "width": 810,
+//                   "height": 1200,
+//                   "pageNumber": 3
+//               }
+//           },
+//           "comment": {
+//               "text": "Reference text: This section describes the training regime for our models. \n \n Reference path: paper.pdf \n \n Reference page: 6 \n \n Explaination: Both strings discuss the process of preparing a model for machine learning tasks. The first string explicitly mentions the development and training of a neural network model, which is a type of machine learning model. The second string refers to the training regime for models, which implies the process of training a model to improve its performance. The training regime could include various steps such as data preprocessing, model selection, and model evaluation. Therefore, both strings are related as they discuss the same topic of model training in machine learning.\n                                    ",
+//               "comment": "🔥"
+//           },
+//           "id": "1123"
+//       }
+//   ]
+// }
