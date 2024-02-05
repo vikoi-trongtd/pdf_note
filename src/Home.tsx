@@ -12,19 +12,31 @@ import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 import { API_CHECK_PDF } from "./data/constants";
 
 const PAGE_TITLE = 'Consistency Check Demo';
+const MAX_PROMPT_LENGTH = 1000;
+const MIN_PROMPT_LENGTH = 20;
 
 type ExtractType = 'extract_type_block' | 'extract_type_sentence';
 
 export default function Home() {
   const navigate = useNavigate();
 
-  const [, setSavedHighlights, clearHightlights] = useLocalStorage(LSI__HIGHLIGHT)
+  const [, setSavedHighlights, clearHightlights] = useLocalStorage(LSI__HIGHLIGHT);
 
   const toastId = useRef<number | string>(0)
   const targetPdfFile = useRef<File | undefined>();
   const refPdfFiles = useRef<File[] | undefined>(); // References Pdf file
   const [sScore, setSScore] = useState<number>(0);
   const [extractType, setExtractType] = useState<ExtractType>('extract_type_block');
+
+  const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
+
+  const onResetPrompt = () => {
+    setPromptText(DEFAULT_PROMPT);
+  }
+
+  const onInputPrompt = (e: any) => {
+    setPromptText(e.target.value);
+  }
 
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
 
@@ -55,7 +67,7 @@ export default function Home() {
     setExtractType(e.target.value === 'extract_type_block' ? 'extract_type_block' : 'extract_type_sentence');
   }
 
-  const updateLocalStorage = (hls: Record<string, Array<IHighlight>>)=>{
+  const updateLocalStorage = (hls: Record<string, Array<IHighlight>>) => {
     clearHightlights();
     setSavedHighlights(hls);
   }
@@ -69,6 +81,10 @@ export default function Home() {
       alert('Please add reference pdfs!');
       return
     }
+    if (promptText.length < MIN_PROMPT_LENGTH || promptText.length > MAX_PROMPT_LENGTH){
+      alert(`Prompt length must in [${MIN_PROMPT_LENGTH},${MAX_PROMPT_LENGTH}]`);
+      return
+    }
 
     setSubmitDisabled(true);
 
@@ -76,8 +92,9 @@ export default function Home() {
     myHeaders.append('accept', 'application/json');
 
     var formdata = new FormData();
-    formdata.append('extract_type', extractType ==="extract_type_block" ? 'block' : 'sentence');
+    formdata.append('extract_type', extractType === "extract_type_block" ? 'block' : 'sentence');
     formdata.append('similarity_score', sScore.toString());
+    formdata.append('prompt', promptText);
     formdata.append('target_file', targetPdfFile.current as Blob, targetPdfFile.current?.name);
     refPdfFiles.current?.forEach((file) => {
       formdata.append('references_file', file, file.name);
@@ -111,13 +128,13 @@ export default function Home() {
       }).finally(() => {
         setSubmitDisabled(false);
       });
-    
+
   }
 
   return (
     <>
       <div className="flex flex-col items-stretch	justify-self-center mx-40 min-w-[700px]">
-      <h1 className="my-10 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center"> {PAGE_TITLE}</h1>
+        <h1 className="my-5 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center"> {PAGE_TITLE}</h1>
         <div className="flex flex-row gap-x-4">
           <GroupUpload
             className=""
@@ -155,8 +172,8 @@ export default function Home() {
                 id="extract_type_sentence"
                 value="extract_type_sentence"
                 onChange={onExtractTypeChange}
-                checked={extractType === 'extract_type_sentence'} 
-                />
+                checked={extractType === 'extract_type_sentence'}
+              />
               <label
                 className="text-black"
                 htmlFor="extract_type_sentence">
@@ -171,6 +188,21 @@ export default function Home() {
               name="similarity_score" id="similarity_score" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
           </div>
         </div>
+        
+        {/* Prompt text */}
+        <div className='group-label flex flex-col'
+          data-content='Prompt'
+        >
+          <textarea className="text-black flex-auto p-2" rows={10} maxLength={MAX_PROMPT_LENGTH} minLength={MIN_PROMPT_LENGTH} value={promptText} onInput={onInputPrompt} />
+          <div className="text-black self-end">{promptText.length}/{MAX_PROMPT_LENGTH}</div>
+          <button
+            className="text-white mt-2 w-full bg-purple-700 hover:bg-purple-800 hover:disabled:bg-purple-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800"
+            onClick={onResetPrompt}
+          // disabled={submitDisabled}
+          >
+            Reset
+          </button>
+        </div>
 
         <button
           className="text-white mt-2 w-full bg-purple-700 hover:bg-purple-800 hover:disabled:bg-purple-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800"
@@ -184,6 +216,14 @@ export default function Home() {
     </>
   );
 }
+
+const DEFAULT_PROMPT = `Write less than 200 words to explain why <text1> and <text2> have the same topic (high similarity) and are relative. Provide a Python string only.
+Please do not mention <text1> and <text2> again in the response.
+<text1>
+    {text}
+<text2>
+    {ref_text}
+`;
 
 // const dataTest1 :Record<string, Array<IHighlight>> = {
 // const dataTest1 = {

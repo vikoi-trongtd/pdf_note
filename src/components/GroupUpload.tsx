@@ -60,13 +60,13 @@ const GroupUpload = (props: GroupUploadProps) => {
       <div
         className={classNames({
           // "justify-center": true,
-          "flex flex-col flex-start p-4 cursor-pointer": true,
+          "flex flex-col flex-start p-2 cursor-pointer": true,
           "text-violet-500 rounded-lg": true,
           "border": true,
           "transition-colors": true,
         }) + ` group-label w-[50%] ${props.className}`}
         style={{
-          paddingTop: "50px",
+          paddingTop: "30px",
         }}
         data-content={props.groupLabel}
       >
@@ -118,7 +118,7 @@ const GroupUpload = (props: GroupUploadProps) => {
           </div>
         </label>
 
-        <div className="mt-2 overflow-auto h-80">
+        <div className="mt-2 overflow-auto h-36">
           {fileListComponent(files)}
         </div>
         
