@@ -203,23 +203,25 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="similarity_score" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Similarity Score</label>
-            <input type="number" step={0.1} max={0.9} min={0} value={sScore} onChange={onSScoreChange}
-              name="similarity_score" id="similarity_score" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-          </div>
+          <div className="flex flex-row gap-x-4">
+            <div className="w-1/2">
+              <label htmlFor="similarity_score" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Similarity Score</label>
+              <input type="number" step={0.1} max={0.9} min={0} value={sScore} onChange={onSScoreChange}
+                name="similarity_score" id="similarity_score" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+            </div>
 
-          <div>
-            <label htmlFor="topk-matches" className="block my-2 text-sm font-medium text-gray-900 dark:text-white">Top K Matches</label>
-            <input type="number" step={1} max={10} min={1} value={topKMaches} onChange={onTopKMachesChanges}
-              name="topk-matches" id="topk-matches" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+            <div className="w-1/2">
+              <label htmlFor="topk-matches" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Top K Matches</label>
+              <input type="number" step={1} max={10} min={1} value={topKMaches} onChange={onTopKMachesChanges}
+                name="topk-matches" id="topk-matches" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+            </div>
           </div>
         </div>
         {/* Prompt text */}
         <div className='group-label flex flex-col'
           data-content='Prompt'
         >
-          <textarea className="text-black flex-auto p-2" rows={10} maxLength={MAX_PROMPT_LENGTH} minLength={MIN_PROMPT_LENGTH} value={promptText} onInput={onInputPrompt} />
+          <textarea className="text-black flex-auto p-2" rows={7} maxLength={MAX_PROMPT_LENGTH} minLength={MIN_PROMPT_LENGTH} value={promptText} onInput={onInputPrompt} />
           <div className="text-black self-end">{promptText.length}/{MAX_PROMPT_LENGTH}</div>
           <button
             className="text-white mt-2 w-full bg-purple-700 hover:bg-purple-800 hover:disabled:bg-purple-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 focus:outline-none dark:focus:ring-purple-800"
@@ -250,7 +252,6 @@ Please do not mention <text1> and <text2> again in the response.
 <text2>
     {ref_text}
 `;
-
 // const dataTest1 :Record<string, Array<IHighlight>> = {
 // const dataTest1 = {
 //   "http://192.168.1.107:9007/results/test.pdf": [
