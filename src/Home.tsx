@@ -26,6 +26,7 @@ export default function Home() {
   const targetPdfFile = useRef<File | undefined>();
   const refPdfFiles = useRef<File[] | undefined>(); // References Pdf file
   const [sScore, setSScore] = useState<number>(0);
+  const [topKMaches, setTopKMaches] = useState<number>(1);
   const [extractType, setExtractType] = useState<ExtractType>('extract_type_block');
 
   const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
@@ -48,16 +49,35 @@ export default function Home() {
     refPdfFiles.current = files;
   }
 
+  const onTopKMachesChanges = (e: React.ChangeEvent<HTMLInputElement>)=>{
+    let newTopK = parseInt(e.target.value);
+    let minTopK = parseInt(e.target.min);
+    let maxTopK = parseInt(e.target.max);
+    if (isNaN(newTopK)) {
+      newTopK = minTopK;
+    }
+    if (newTopK < minTopK) {
+      newTopK = minTopK;
+    }
+    if (newTopK > maxTopK){
+      newTopK = maxTopK;
+    }
+
+    setTopKMaches(newTopK);
+  }
+
   const onSScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newSScore = parseFloat(e.target.value);
+    let minSScore = parseFloat(e.target.min);
+    let maxSScore = parseFloat(e.target.max);
     if (isNaN(newSScore)) {
-      newSScore = 0;
+      newSScore = minSScore;
     }
-    if (newSScore > 0.9) {
-      newSScore = 0.9;
+    if (newSScore < minSScore) {
+      newSScore = minSScore;
     }
-    if (newSScore < 0) {
-      newSScore = 0;
+    if (newSScore > maxSScore) {
+      newSScore = maxSScore;
     }
 
     setSScore(newSScore);
@@ -94,6 +114,7 @@ export default function Home() {
     var formdata = new FormData();
     formdata.append('extract_type', extractType === "extract_type_block" ? 'block' : 'sentence');
     formdata.append('similarity_score', sScore.toString());
+    formdata.append('top_k', topKMaches.toString());
     formdata.append('prompt', promptText);
     formdata.append('target_file', targetPdfFile.current as Blob, targetPdfFile.current?.name);
     refPdfFiles.current?.forEach((file) => {
@@ -143,7 +164,7 @@ export default function Home() {
             className=""
             groupLabel="References PDF" updateData={updateRefPdf} isMultiple={true} id="references-pdf" />
         </div>
-
+        {/* inputs */}
         <div className="flex flex-col">
           <label htmlFor="similarity_score" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Extract Type
@@ -184,11 +205,16 @@ export default function Home() {
 
           <div>
             <label htmlFor="similarity_score" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Similarity Score</label>
-            <input type="number" step={0.1} max={0.9} value={sScore} onChange={onSScoreChange}
+            <input type="number" step={0.1} max={0.9} min={0} value={sScore} onChange={onSScoreChange}
               name="similarity_score" id="similarity_score" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
           </div>
+
+          <div>
+            <label htmlFor="topk-matches" className="block my-2 text-sm font-medium text-gray-900 dark:text-white">Top K Matches</label>
+            <input type="number" step={1} max={10} min={1} value={topKMaches} onChange={onTopKMachesChanges}
+              name="topk-matches" id="topk-matches" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+          </div>
         </div>
-        
         {/* Prompt text */}
         <div className='group-label flex flex-col'
           data-content='Prompt'
