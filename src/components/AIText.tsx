@@ -9,8 +9,8 @@ interface AITextProps {
   taskAfterTextFilled: ()=> void;
 }
 
-const TEXT_DISPLAY_INTERVAL = 30;
-const AI_CURSOR = parse('&#9724;');
+const TEXT_DISPLAY_INTERVAL = 15;
+const AI_CURSOR = parse('&#9724;') as string;
 
 const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -24,27 +24,30 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   };
 
   useEffect(() => {
-    // console.log('comment', comment);
-    if (comment === null || comment === undefined || isCalledNext.current) {
-      if (!isCalledNext.current){
-        isCalledNext.current = true;
-        props.taskAfterTextFilled();
-      } 
-      return;
-    }
-    //
-    let interval: NodeJS.Timer;
-    const aiCursor = curComment.length % 4 === 0 ? AI_CURSOR : '';
-    if (curComment.length < comment.length) {
-      interval = setInterval(() => setCurComment(() => comment.slice(0, curComment.length + 1) + aiCursor), TEXT_DISPLAY_INTERVAL);
-    } else if (curComment.length === comment.length){
-      interval = setInterval(() => setCurComment(() => comment.slice(0, curComment.length)), TEXT_DISPLAY_INTERVAL);
-    }
-    // Generate next AIText
-    if (curComment.length >= comment.length){
+    const callNextAIText = ()=>{
       isCalledNext.current = true;
       props.taskAfterTextFilled();
     }
+    // console.log('comment', comment);
+    if (comment === null || comment === undefined) {
+      if (!isCalledNext.current){
+        callNextAIText();
+      } 
+      return;
+    }
+    // Generate next AIText
+    let interval: NodeJS.Timer;
+    const isContainedAICursor = curComment.includes(AI_CURSOR);
+    const realCurLength = curComment.length - (isContainedAICursor ? 1: 0); // curComment length without AI_CURSOR
+    const nOfLackChars = comment.length - realCurLength;
+    if (nOfLackChars <= 0 && isContainedAICursor){
+      callNextAIText();
+      return;
+    }
+    //
+    const isIncludeAICursorLast = nOfLackChars === 0;
+    const aiCursor = curComment.length % 5 === 0 || isIncludeAICursorLast  ? AI_CURSOR : '';
+    interval = setInterval(() => setCurComment(() => comment.slice(0, curComment.length + 1) + aiCursor), TEXT_DISPLAY_INTERVAL);
     return () => clearInterval(interval);
   }, [curComment, props, comment]);
 
@@ -54,6 +57,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   useEffect(()=>{
     contentRef.current?.scrollIntoView();
   }, [curComment]);
+
   return (
     <>
       <li

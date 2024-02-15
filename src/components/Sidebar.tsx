@@ -4,6 +4,7 @@ import AIText from "./AIText";
 
 interface Props {
   highlights: Array<IHighlight>;
+  addAIHighlight: (newHighlight: IHighlight)=>void;
 }
 
 const updateHash = (highlight: IHighlight) => {
@@ -12,6 +13,7 @@ const updateHash = (highlight: IHighlight) => {
 
 export function Sidebar({
   highlights,
+  addAIHighlight
 }: Props) {
   const [listAIText, setListAIText] = useState<JSX.Element[]>([]);
   const childAITextRef = useRef();
@@ -37,9 +39,10 @@ export function Sidebar({
 
   useEffect(() => {
     if (nChild < highlights.length) {
+      addAIHighlight(highlights[nChild])
       addChild(nChild);
     }
-  }, [addChild, highlights.length, nChild]);
+  }, [addChild, highlights, nChild]);
 
   return (
     <div className="sidebar" style={{ width: "25vw" }}>

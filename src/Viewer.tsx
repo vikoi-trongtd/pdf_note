@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   PdfLoader,
@@ -36,7 +36,6 @@ const HighlightPopup = ({ comment }: { comment: { text: string; emoji: string } 
 
 // const PRIMARY_PDF_URL = "http://192.168.1.107:9007/results/test.pdf";
 const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
-const SECONDARY_PDF_URL = "https://arxiv.org/pdf/1604.02480.pdf";
 
 const Viewer: React.FC = () => {
   const [savedHighlights, , ] = useLocalStorage(LSI__HIGHLIGHT);
@@ -53,6 +52,7 @@ const Viewer: React.FC = () => {
   const [highlights, setHighlights] = useState<Array<IHighlight>>(
     rsData.current[url] ? [...rsData.current[url]] : []
   );
+  const [aiHighlights, setAIHighlights] = useState<Array<IHighlight>>([]);
 
   console.log('highlight ', highlights);
 
@@ -61,10 +61,14 @@ const Viewer: React.FC = () => {
   const scrollToHighlightFromHash = () => {
     const highlight = getHighlightById(parseIdFromHash());
 
-    if (highlight) {
+    scrollToHighlight(highlight);
+  };
+
+  const scrollToHighlight = (highlight: IHighlight | undefined)=>{
+    if (highlight){
       scrollViewerTo.current(highlight);
     }
-  };
+  }
 
   useEffect(() => {
     window.addEventListener("hashchange", scrollToHighlightFromHash, false);
@@ -82,6 +86,14 @@ const Viewer: React.FC = () => {
     console.log("Saving highlight", highlight);
     setHighlights([{ ...highlight, id: getNextId() }, ...highlights]);
   };
+
+  const addAIHighlight = useCallback((hl: IHighlight) => {
+    console.log("Saving AIhighlight", hl);
+    console.log("curAIHighlight", aiHighlights);
+    // Scroll pdf side
+    // scrollToHighlight(hl);
+    setAIHighlights([hl, ...aiHighlights]);
+  }, [aiHighlights]);
 
   const updateHighlight = (highlightId: string, position: Object, content: Object) => {
     console.log("Updating highlight", highlightId, position, content);
@@ -113,6 +125,7 @@ const Viewer: React.FC = () => {
 
       <Sidebar
         highlights={highlights}
+        addAIHighlight={addAIHighlight}
       />
 
       <div style={{ height: "100vh", width: "75vw", position: "relative" }}>
@@ -185,7 +198,7 @@ const Viewer: React.FC = () => {
                   />
                 );
               }}
-              highlights={highlights}
+              highlights={aiHighlights}
             />
           )}
         </PdfLoader>
