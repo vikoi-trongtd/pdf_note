@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 
 
 import GroupUpload from "./components/GroupUpload";
-// import { testHighlights } from "./test-highlights";
+import { testHighlights } from "./test-highlights";
 
 import 'react-toastify/dist/ReactToastify.css';
 import { IHighlight } from "react-pdf-highlighter";
@@ -252,6 +252,13 @@ Please do not mention <text1> and <text2> again in the response.
 <text2>
     {ref_text}
 `;
+
+const delay = (ms: number) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
 // const dataTest1 :Record<string, Array<IHighlight>> = {
 // const dataTest1 = {
 //   "http://192.168.1.107:9007/results/test.pdf": [
