@@ -4,13 +4,10 @@ import AIText from "./AIText";
 
 interface Props {
   highlights: Array<IHighlight>;
-  addAIHighlight: (newHighlight: IHighlight)=>void;
+  addAIHighlight: (newHighlight: IHighlight) => void;
 }
 
-export function Sidebar({
-  highlights,
-  addAIHighlight
-}: Props) {
+export function Sidebar({ highlights, addAIHighlight }: Props) {
   const [listAIText, setListAIText] = useState<JSX.Element[]>([]);
   const childAITextRef = useRef();
   const [nChild, setNChild] = useState(0);
@@ -26,15 +23,14 @@ export function Sidebar({
         ref={childAITextRef}
         id={prevChildren.length}
         highlight={hl}
-        afterTextFilled={()=> setNChild(nChild=> nChild+1)}
+        afterTextFilled={() => setNChild((nChild) => nChild + 1)}
       />,
     ]);
-
-    }, []);
+  }, []);
 
   useEffect(() => {
     if (nChild < highlights.length) {
-      addAIHighlight(highlights[nChild])
+      addAIHighlight(highlights[nChild]);
       addChild(highlights[nChild]);
     }
   }, [addAIHighlight, addChild, highlights, nChild]);
@@ -42,9 +38,6 @@ export function Sidebar({
   return (
     <div className="sidebar" style={{ width: "25vw" }}>
       <div className="description" style={{ padding: "1rem" }}>
-        <h2 style={{ marginBottom: "1rem" }}>
-        </h2>
-
         <p>
           <small>
             To create area highlight hold ⌥ Option key (Alt), then click and
