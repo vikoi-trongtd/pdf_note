@@ -12,6 +12,7 @@ interface AITextProps {
   id: number;
   highlight: IHighlight;
   ref: React.ForwardedRef<any>;
+  scrollToBottom: () => void;
   afterTextFilled: () => void;
 }
 
@@ -34,7 +35,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
       isCalledNext.current = true;
       props.afterTextFilled();
     };
-    // console.log('comment', comment);
+
     if (comment === null || comment === undefined) {
       if (!isCalledNext.current) {
         callNextAIText();
@@ -65,7 +66,8 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   useImperativeHandle(ref, () => ({}));
 
   useEffect(() => {
-    contentRef.current?.scrollIntoView();
+    // contentRef.current?.scrollIntoView();
+    props.scrollToBottom();
   }, [curComment]);
 
   return (

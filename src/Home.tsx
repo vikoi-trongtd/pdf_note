@@ -6,9 +6,9 @@ import GroupUpload from "./components/GroupUpload";
 // import { testHighlights } from "./test-highlights";
 
 import "react-toastify/dist/ReactToastify.css";
-import { IHighlight } from "react-pdf-highlighter";
-import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
-import { API_CHECK_PDF } from "./data/constants";
+// import { API_CHECK_PDF } from "./data/constants";
+import { uniqueFileName } from "./utils/strings";
+// import useIndexedDB, { IDB__HIGHLIGHT_RESULTS } from "./hooks/useIndexDB";
 
 const PAGE_TITLE = "Consistency Check Demo";
 const MAX_PROMPT_LENGTH = 1000;
@@ -19,8 +19,7 @@ type ExtractType = "extract_type_block" | "extract_type_sentence";
 export default function Home() {
   const navigate = useNavigate();
 
-  const [, setSavedHighlights, clearHightlights] =
-    useLocalStorage(LSI__HIGHLIGHT);
+  // const {addData, getAllData} = useIndexedDB({dbName: IDB__HIGHLIGHT_RESULTS, storeName: "note_requested"});
 
   const toastId = useRef<number | string>(0);
   const targetPdfFile = useRef<File | undefined>();
@@ -92,10 +91,10 @@ export default function Home() {
     );
   };
 
-  const updateLocalStorage = (hls: Record<string, Array<IHighlight>>) => {
-    clearHightlights();
-    setSavedHighlights(hls);
-  };
+  // const updateLocalStorage = (hls: Record<string, Array<IHighlight>>) => {
+  //   clearHightlights();
+  //   setSavedHighlights(hls);
+  // };
 
   const onSubmit = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -119,76 +118,41 @@ export default function Home() {
     }
 
     setSubmitDisabled(true);
+    const targetFilename = uniqueFileName(targetPdfFile.current?.name);
 
-    const myHeaders = new Headers();
-    myHeaders.append("accept", "application/json");
-
-    const formdata = new FormData();
-    formdata.append(
-      "extract_type",
-      extractType === "extract_type_block" ? "block" : "sentence"
-    );
-    formdata.append("similarity_score", sScore.toString());
-    formdata.append("top_k", topKMaches.toString());
-    formdata.append("prompt", promptText);
-    formdata.append(
-      "target_file",
-      targetPdfFile.current as Blob,
-      targetPdfFile.current?.name
-    );
-    refPdfFiles.current?.forEach((file) => {
-      formdata.append("references_file", file, file.name);
-    });
-
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: formdata,
-      redirect: "follow",
-      keepalive: true,
-    } as RequestInit;
+    const requestData = {
+      extract_type: extractType === "extract_type_block" ? "block" : "sentence",
+      similarity_score: sScore.toString(),
+      top_k: topKMaches.toString(),
+      prompt: promptText,
+      target_file: targetPdfFile.current,
+      references_file: refPdfFiles.current,
+    }
 
     toastId.current = toast.loading("Loading the result...");
-    // Faking
-    // await delay(1000);
-    // toast.update(toastId.current, { render: 'Process success', type: 'success', isLoading: false });
-    // navigate(`/viewer?url=${encodeURIComponent(Object.keys(testHighlights)[0])}`, { replace: true, state: testHighlights });
-
-    fetch(API_CHECK_PDF, requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        console.log("rs", result);
-        toast.update(toastId.current, {
-          render: "Process done",
-          type: "success",
-          isLoading: false,
-          closeButton: true,
-        });
-        updateLocalStorage(result);
-        navigate(`/viewer?url=${encodeURIComponent(Object.keys(result)[0])}`, {
-          replace: true,
-          state: result,
-        });
-        // navigate(`/viewer`, { replace: true, state: {} });
-      })
-      .catch((error) => {
-        toast.update(toastId.current, {
-          render: "Process error: Internal server error!",
-          type: "error",
-          isLoading: false,
-          closeButton: true,
-        });
-      })
-      .finally(() => {
-        setSubmitDisabled(false);
-      });
+    // Save request to database
+    // Mocking
+    await delay(1000);
+    toast.update(toastId.current, {
+      render: "Process success",
+      type: "success",
+      isLoading: false,
+    });
+    navigate(
+      `/viewer?file_name=${encodeURIComponent(
+        targetFilename
+      )}&url=${URL.createObjectURL(targetPdfFile.current)}`,
+      {
+        replace: false,
+        state: requestData,
+      }
+    );
   };
 
   return (
     <>
       <div className="flex flex-col items-stretch	justify-self-center mx-40 min-w-[700px]">
         <h1 className="my-5 text-violet-700 text-4xl font-extrabold leading-none tracking-tigh md:text-5xl lg:text-6xl dark:text-white text-center">
-          {" "}
           {PAGE_TITLE}
         </h1>
         <div className="flex flex-row gap-x-4">
@@ -331,11 +295,11 @@ Please do not mention <text1> and <text2> again in the response.
     {ref_text}
 `;
 
-// const delay = (ms: number) => {
-//   return new Promise((resolve) => {
-//     setTimeout(resolve, ms);
-//   });
-// };
+const delay = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
 
 // const dataTest1 :Record<string, Array<IHighlight>> = {
 // const dataTest1 = {
