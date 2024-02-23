@@ -58,11 +58,15 @@ const Viewer: React.FC = () => {
 
   const scrollViewerTo = useRef<(highlight: any) => void>(() => {});
 
-  const scrollToHighlightFromHash = () => {
+  const getHighlightById = useCallback((id: string) => {
+    return highlights.find((highlight) => highlight.id === id);
+  }, [highlights]);
+  
+  const scrollToHighlightFromHash = useCallback(() => {
     const highlight = getHighlightById(parseIdFromHash());
 
     scrollToHighlight(highlight);
-  };
+  }, [getHighlightById]);
 
   const scrollToHighlight = (highlight: IHighlight | undefined)=>{
     if (highlight){
@@ -76,11 +80,7 @@ const Viewer: React.FC = () => {
     return () => {
       window.removeEventListener("hashchange", scrollToHighlightFromHash, false);
     };
-  }, []);
-
-  const getHighlightById = (id: string) => {
-    return highlights.find((highlight) => highlight.id === id);
-  };
+  }, [scrollToHighlightFromHash]);
 
   const addHighlight = (highlight: NewHighlight) => {
     console.log("Saving highlight", highlight);
@@ -89,11 +89,10 @@ const Viewer: React.FC = () => {
 
   const addAIHighlight = useCallback((hl: IHighlight) => {
     console.log("Saving AIhighlight", hl);
-    console.log("curAIHighlight", aiHighlights);
     // Scroll pdf side
     // scrollToHighlight(hl);
-    setAIHighlights([hl, ...aiHighlights]);
-  }, [aiHighlights]);
+    setAIHighlights( hls => [...hls, hl]);
+  }, []);
 
   const updateHighlight = (highlightId: string, position: Object, content: Object) => {
     console.log("Updating highlight", highlightId, position, content);

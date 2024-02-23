@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Dispatch, SetStateAction, useImperativeHandle, forwardRef, useRef } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
 import parse from 'html-react-parser';
 import { IHighlight } from 'react-pdf-highlighter';
 
@@ -6,7 +6,7 @@ interface AITextProps {
   id: number;
   highlight: IHighlight;
   ref: React.ForwardedRef<any>;
-  taskAfterTextFilled: ()=> void;
+  afterTextFilled: ()=> void;
 }
 
 const TEXT_DISPLAY_INTERVAL = 15;
@@ -17,7 +17,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   const [curComment, setCurComment] = useState<string>('');
   const comment = props.highlight.comment?.text ;
   const highlight = props.highlight;
-  const isCalledNext = useRef(false);// isCalledTaskAfterTextFilled
+  const isCalledNext = useRef(false);// is called AfterTextFilled
 
   const updateHash = (highlight: IHighlight) => {
     document.location.hash = `highlight-${highlight.id}`;
@@ -26,7 +26,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   useEffect(() => {
     const callNextAIText = ()=>{
       isCalledNext.current = true;
-      props.taskAfterTextFilled();
+      props.afterTextFilled();
     }
     // console.log('comment', comment);
     if (comment === null || comment === undefined) {

@@ -108,10 +108,10 @@ export default function Home() {
 
     setSubmitDisabled(true);
 
-    var myHeaders = new Headers();
+    const myHeaders = new Headers();
     myHeaders.append('accept', 'application/json');
 
-    var formdata = new FormData();
+    const formdata = new FormData();
     formdata.append('extract_type', extractType === "extract_type_block" ? 'block' : 'sentence');
     formdata.append('similarity_score', sScore.toString());
     formdata.append('top_k', topKMaches.toString());
