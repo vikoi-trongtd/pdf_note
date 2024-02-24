@@ -5,10 +5,12 @@ import { ToastContainer, toast } from "react-toastify";
 import GroupUpload from "./components/GroupUpload";
 // import { testHighlights } from "./test-highlights";
 
-import "react-toastify/dist/ReactToastify.css";
-// import { API_CHECK_PDF } from "./data/constants";
+import {openIDB, IDB_PDF_NOTE, PdfNoteStores, addDataIDB, getAllDataIDB} from './utils/indexedDB';
 import { uniqueFileName } from "./utils/strings";
+// import { API_CHECK_PDF } from "./data/constants";
 // import useIndexedDB, { IDB__HIGHLIGHT_RESULTS } from "./hooks/useIndexDB";
+
+import "react-toastify/dist/ReactToastify.css";
 
 const PAGE_TITLE = "Consistency Check Demo";
 const MAX_PROMPT_LENGTH = 1000;
@@ -28,7 +30,6 @@ export default function Home() {
   const [topKMaches, setTopKMaches] = useState<number>(1);
   const [extractType, setExtractType] =
     useState<ExtractType>("extract_type_block");
-
   const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
 
   const onResetPrompt = () => {
@@ -138,15 +139,34 @@ export default function Home() {
       type: "success",
       isLoading: false,
     });
+    // Store pdf file
+    // const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.pdfFile);
+    // console.log('db created', db);
+    // await addDataIDB(db, PdfNoteStores.pdfFile,{
+    //   filename: targetFilename,
+    //   blob: targetPdfFile.current,
+    // },""
+    // );
+    // //
+    // await getAllDataIDB(db, PdfNoteStores.pdfFile);
+    // Navigate without createObjectURL
     navigate(
-      `/viewer?file_name=${encodeURIComponent(
-        targetFilename
-      )}&url=${URL.createObjectURL(targetPdfFile.current)}`,
+      `/viewer?filename=${encodeURIComponent(targetFilename)}`,
       {
         replace: false,
         state: requestData,
       }
     );
+    // Navigate using createObjectUrl
+    // navigate(
+    //   `/viewer?filename=${encodeURIComponent(
+    //     targetFilename
+    //   )}&url=${URL.createObjectURL(targetPdfFile.current)}`,
+    //   {
+    //     replace: false,
+    //     state: requestData,
+    //   }
+    // );
   };
 
   return (

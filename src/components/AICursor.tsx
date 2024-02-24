@@ -14,7 +14,7 @@ const AICursor = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log('blinking');
+      // console.log('blinking');
       setIsShowCursor(isShowCursor => !isShowCursor);
       clearInterval(interval);
     }, BLINKING_INTERVAL);
