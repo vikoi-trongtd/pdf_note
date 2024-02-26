@@ -11,7 +11,6 @@ import {
 } from "./react-pdf-highlighter";
 // import { browserHistory } from 'react-router';
 
-
 import type { IHighlight, NewHighlight } from "./react-pdf-highlighter";
 // import { testHighlights as _testHighlights } from "./test-highlights";
 import { Spinner } from "./components/Spinner";
@@ -20,7 +19,12 @@ import { Sidebar } from "./components/Sidebar";
 import "./styles/Viewer.css";
 // import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 import { API_CHECK_PDF } from "./data/constants";
-import { IDB_PDF_NOTE, PdfNoteStores, getAllDataIDB, openIDB } from "./utils/indexedDB";
+import {
+  IDB_PDF_NOTE,
+  PdfNoteStores,
+  getAllDataIDB,
+  openIDB,
+} from "./utils/indexedDB";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
 
@@ -47,7 +51,6 @@ const HighlightPopup = ({
     </div>
   ) : null;
 
-
 const Viewer: React.FC = () => {
   const [streamHlReader, setStreamReader] = useState<any>(undefined);
 
@@ -55,49 +58,50 @@ const Viewer: React.FC = () => {
 
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [isGotAllHightlight, setIsGotAllHighlight] = useState<boolean>(false);
-  
+
   useEffect(() => {
-    const getRequestData = async() => {
-      const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
-      console.log('filename from url', filename);
+    const getRequestData = async () => {
+      const filename: string =
+        new URLSearchParams(document.location.search).get("filename") || "";
+      console.log("filename from url", filename);
       const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
-      if (!db){
+      if (!db) {
         return undefined;
       }
-      const listRequests = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
-      if (Array.isArray(listRequests)){
-        const requestOptions = listRequests.find( (reqInfo)=> reqInfo.filename === filename);
+      const listRequests = await getAllDataIDB(
+        db,
+        PdfNoteStores.requestsHistory
+      );
+      if (Array.isArray(listRequests)) {
+        const requestOptions = listRequests.find(
+          (reqInfo) => reqInfo.filename === filename
+        );
         return requestOptions;
       }
-    }
+    };
 
     const fetchData = async () => {
-      const requestData: any= await getRequestData();
-      if (!requestData){
+      const requestData: any = await getRequestData();
+      if (!requestData) {
         return;
       }
       //
       setUrl(URL.createObjectURL(requestData.target_file));
       //
-      console.log('request data', requestData);
+      console.log("request data", requestData);
       const myHeaders = new Headers();
       myHeaders.append("accept", "application/json");
       const formdata = new FormData();
-      formdata.append(
-        "extract_type", requestData.extract_type
-      );
+      formdata.append("extract_type", requestData.extract_type);
       formdata.append("similarity_score", requestData.similarity_score);
       formdata.append("top_k", requestData.top_k);
       formdata.append("prompt", requestData.prompt);
-      formdata.append(
-        "target_file",
-        requestData.target_file as Blob,
-      );
+      formdata.append("target_file", requestData.target_file as Blob);
 
-      requestData.references_file.forEach((file:any) => {
+      requestData.references_file.forEach((file: any) => {
         formdata.append("references_file", file, file.name);
       });
-  
+
       const requestOptions = {
         method: "POST",
         headers: myHeaders,
@@ -106,7 +110,6 @@ const Viewer: React.FC = () => {
         keepalive: true,
       } as RequestInit;
       try {
-
         const response = await fetch(API_CHECK_PDF, requestOptions);
         const reader = response.body?.getReader();
         setStreamReader(reader);
@@ -114,30 +117,30 @@ const Viewer: React.FC = () => {
           if (!reader) {
             return;
           }
-  
+
           const { value, done } = await reader.read();
-  
+
           if (done) {
-            console.log('Got all hightlights from server');
+            console.log("Got all hightlights from server");
             setIsGotAllHighlight(true);
             return;
           }
-  
+
           const hlStr = new TextDecoder().decode(value);
           let hl: IHighlight | undefined;
           try {
             hl = JSON.parse(hlStr) as IHighlight;
           } catch (err) {}
-  
+
           if (hl) {
-            console.log('New highlight from server', hl);
+            console.log("New highlight from server", hl);
             setHighlights((highlights) => [...highlights, hl as IHighlight]);
           }
           // Read next chunk
           decodeStream();
         };
         decodeStream();
-      } catch (err){}
+      } catch (err) {}
     };
 
     fetchData();
@@ -183,13 +186,13 @@ const Viewer: React.FC = () => {
   }, [scrollToHighlightFromHash]);
 
   // Cancel the fetch stream reader when user change/leave this page.
-  useEffect( ()=> {
-    return ()=> {
-      console.log('Start cancel received highlights from server');
-      if (streamHlReader){
-        console.log('Canceling received highlights from server');
+  useEffect(() => {
+    return () => {
+      console.log("Start cancel received highlights from server");
+      if (streamHlReader) {
+        console.log("Canceling received highlights from server");
         streamHlReader.cancel();
-        console.log('Canceled received highlights from server');
+        console.log("Canceled received highlights from server");
       }
     };
   }, [streamHlReader]);
@@ -252,7 +255,11 @@ const Viewer: React.FC = () => {
         </Link>
       </div>
 
-      <Sidebar highlights={highlights} addAIHighlight={addAIHighlight} isGotAllHighlight={isGotAllHightlight}/>
+      <Sidebar
+        highlights={highlights}
+        addAIHighlight={addAIHighlight}
+        isGotAllHighlight={isGotAllHightlight}
+      />
 
       <div style={{ height: "100vh", width: "75vw", position: "relative" }}>
         <PdfLoader key={url} url={url} beforeLoad={<Spinner />}>

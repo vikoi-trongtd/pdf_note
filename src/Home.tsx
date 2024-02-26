@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
 import GroupUpload from "./components/GroupUpload";
-import {openIDB, IDB_PDF_NOTE, PdfNoteStores, addDataIDB} from './utils/indexedDB';
+import {
+  openIDB,
+  IDB_PDF_NOTE,
+  PdfNoteStores,
+  addDataIDB,
+} from "./utils/indexedDB";
 import { uniqueFileName } from "./utils/strings";
 
 import "react-toastify/dist/ReactToastify.css";
@@ -123,7 +128,7 @@ export default function Home() {
       prompt: promptText,
       target_file: targetPdfFile.current,
       references_file: refPdfFiles.current,
-    }
+    };
 
     toastId.current = toast.loading("Loading the result...");
     // Save request to database
@@ -136,19 +141,16 @@ export default function Home() {
     });
     // Store request data
     const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
-    if (db){
-      await addDataIDB(db, PdfNoteStores.requestsHistory,requestData,"");
+    if (db) {
+      await addDataIDB(db, PdfNoteStores.requestsHistory, requestData, "");
     }
     //
     // await getAllDataIDB(db, PdfNoteStores.pdfFile);
     // Navigate without createObjectURL
-    navigate(
-      `/viewer?filename=${encodeURIComponent(targetFilename)}`,
-      {
-        replace: false,
-        // state: requestData,
-      }
-    );
+    navigate(`/viewer?filename=${encodeURIComponent(targetFilename)}`, {
+      replace: false,
+      // state: requestData,
+    });
   };
 
   return (

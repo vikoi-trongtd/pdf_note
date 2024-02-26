@@ -9,7 +9,11 @@ interface Props {
   addAIHighlight: (newHighlight: IHighlight) => void;
 }
 
-export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props) {
+export function Sidebar({
+  highlights,
+  addAIHighlight,
+  isGotAllHighlight,
+}: Props) {
   const childAITextRef = useRef();
   const lastChildRef = useRef<HTMLDivElement>(null);
   const [isAITextRunning, setIsAITextRunning] = useState<boolean>(false);
@@ -28,14 +32,13 @@ export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props
         ref={childAITextRef}
         id={prevChildren.length}
         highlight={hl}
-        scrollToBottom={()=>{
+        scrollToBottom={() => {
           lastChildRef.current?.scrollIntoView();
         }}
         afterTextFilled={() => {
           setIsAITextRunning(false);
-          setNChild((nChild) => nChild + 1)
-        }
-      }
+          setNChild((nChild) => nChild + 1);
+        }}
       />,
     ]);
   }, []);
@@ -47,8 +50,6 @@ export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props
       addChild(highlights[nChild]);
     }
   }, [addAIHighlight, addChild, highlights, isAITextRunning, nChild]);
-
-
 
   return (
     <div className="sidebar" style={{ width: "25vw" }}>
@@ -63,7 +64,7 @@ export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props
 
       <ul>{listAIText.map((AIText) => AIText)}</ul>
       {/* <div className="text-yellow-950">Trongtd</div> */}
-      {!isGotAllHighlight && !isAITextRunning? <AICursor/> : null}
+      {!isGotAllHighlight && !isAITextRunning ? <AICursor /> : null}
       <div ref={lastChildRef}></div>
     </div>
   );
