@@ -68,7 +68,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   useEffect(() => {
     // contentRef.current?.scrollIntoView();
     props.scrollToBottom();
-  }, [curComment]);
+  }, [curComment, props]);
 
   return (
     <>

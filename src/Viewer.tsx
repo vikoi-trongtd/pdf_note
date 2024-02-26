@@ -17,6 +17,7 @@ import { Sidebar } from "./components/Sidebar";
 import "./styles/Viewer.css";
 import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 import { API_CHECK_PDF } from "./data/constants";
+import { IDB_PDF_NOTE, PdfNoteStores, getAllDataIDB, openIDB } from "./utils/indexedDB";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
 
@@ -44,20 +45,67 @@ const HighlightPopup = ({
   ) : null;
 
 // const PRIMARY_PDF_URL = "http://192.168.1.107:9007/results/test.pdf";
-const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
+// const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 
 const Viewer: React.FC = () => {
-  const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
+  // const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
 
-  const viewerState = useRef(useLocation().state);
+  // const viewerState = useRef(useLocation().state);
 
-  const url: string =
-    new URLSearchParams(document.location.search).get("url") || PRIMARY_PDF_URL;
+  const [url, setUrl] =
+  useState<string>(new URLSearchParams(document.location.search).get("url") || "unknown");
+  // const [url, setUrl] =
+  // useState<string>(URL.createObjectURL(viewerState.current.target_file));
+  
+  // console.log('init url = ', url);
+
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [isGotAllHightlight, setIsGotAllHighlight] = useState<boolean>(false);
-
+  
+  // useEffect(()=>{
+  //   const getUrlLink = async() => {
+  //     const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
+  //     const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+  //     const listPdfFiles = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
+  //     if (Array.isArray(listPdfFiles)){
+  //       const files = listPdfFiles.find( (fileInfo)=> fileInfo.filename === filename);
+  //       if (files){
+  //         console.log('got url from IDB', files);
+  //         console.log('got url from IDB, blob', files.blob);
+  //         setUrl(URL.createObjectURL(files.blob));
+          
+  //         const fr = new FileReader();
+  //         console.log("read file from IDB", fr.readAsArrayBuffer(files.blob));
+  //       }
+  //     }
+  //   }
+  //   getUrlLink();
+  // },[]);
+  
   useEffect(() => {
-    const fetchData = async (requestData: any) => {
+    const getRequestData = async() => {
+      const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
+      console.log('filename from url', filename);
+      const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+      if (!db){
+        return undefined;
+      }
+      const listRequests = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
+      if (Array.isArray(listRequests)){
+        const requestOptions = listRequests.find( (reqInfo)=> reqInfo.filename === filename);
+        return requestOptions;
+      }
+    }
+
+    const fetchData = async () => {
+      const requestData: any= await getRequestData();
+      if (!requestData){
+        return;
+      }
+      //
+      setUrl(URL.createObjectURL(requestData.target_file));
+      //
+      // console.log('request data', requestData);
       const myHeaders = new Headers();
       myHeaders.append("accept", "application/json");
       const formdata = new FormData();
@@ -83,55 +131,46 @@ const Viewer: React.FC = () => {
         redirect: "follow",
         keepalive: true,
       } as RequestInit;
+      try {
 
-      const response = await fetch(API_CHECK_PDF, requestOptions);
-      const reader = response.body?.getReader();
-      const decodeStream = async () => {
-        if (!reader) {
-          return;
-        }
-
-        const { value, done } = await reader.read();
-
-        if (done) {
-          console.log('Got all hightlights');
-          setIsGotAllHighlight(true);
-          return;
-        }
-
-        const hlStr = new TextDecoder().decode(value);
-        let hl: IHighlight | undefined;
-        try {
-          hl = JSON.parse(hlStr) as IHighlight;
-        } catch (err) {}
-
-        if (hl) {
-          console.log('New highlight from server', hl);
-          setHighlights((highlights) => [...highlights, hl as IHighlight]);
-        }
-        // Read next chunk
+        const response = await fetch(API_CHECK_PDF, requestOptions);
+        const reader = response.body?.getReader();
+        const decodeStream = async () => {
+          if (!reader) {
+            return;
+          }
+  
+          const { value, done } = await reader.read();
+  
+          if (done) {
+            console.log('Got all hightlights from server');
+            setIsGotAllHighlight(true);
+            return;
+          }
+  
+          const hlStr = new TextDecoder().decode(value);
+          let hl: IHighlight | undefined;
+          try {
+            hl = JSON.parse(hlStr) as IHighlight;
+          } catch (err) {}
+  
+          if (hl) {
+            console.log('New highlight from server', hl);
+            setHighlights((highlights) => [...highlights, hl as IHighlight]);
+          }
+          // Read next chunk
+          decodeStream();
+        };
         decodeStream();
-      };
-
-      decodeStream();
+      } catch (err){}
     };
 
-    if (viewerState.current) {
-      console.log('Start get hightlights');
-      fetchData(viewerState.current);
-    }
+    fetchData();
 
     return () => {
       // Cleanup code, if needed
     };
   }, []);
-
-  if (!viewerState.current) {
-    viewerState.current = savedHighlights() as Record<
-      string,
-      Array<IHighlight>
-    >;
-  }
 
   const [aiHighlights, setAIHighlights] = useState<Array<IHighlight>>([]);
 
@@ -229,7 +268,7 @@ const Viewer: React.FC = () => {
       <Sidebar highlights={highlights} addAIHighlight={addAIHighlight} isGotAllHighlight={isGotAllHightlight}/>
 
       <div style={{ height: "100vh", width: "75vw", position: "relative" }}>
-        <PdfLoader url={url} beforeLoad={<Spinner />}>
+        <PdfLoader key={url} url={url} beforeLoad={<Spinner />}>
           {(pdfDocument) => (
             <PdfHighlighter
               pdfDocument={pdfDocument}
