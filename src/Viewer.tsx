@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation} from "react-router-dom";
+
 import {
   PdfLoader,
   PdfHighlighter,
@@ -8,6 +9,8 @@ import {
   Popup,
   AreaHighlight,
 } from "./react-pdf-highlighter";
+// import { browserHistory } from 'react-router';
+
 
 import type { IHighlight, NewHighlight } from "./react-pdf-highlighter";
 // import { testHighlights as _testHighlights } from "./test-highlights";
@@ -15,7 +18,7 @@ import { Spinner } from "./components/Spinner";
 import { Sidebar } from "./components/Sidebar";
 
 import "./styles/Viewer.css";
-import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
+// import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 import { API_CHECK_PDF } from "./data/constants";
 import { IDB_PDF_NOTE, PdfNoteStores, getAllDataIDB, openIDB } from "./utils/indexedDB";
 
@@ -51,6 +54,8 @@ const Viewer: React.FC = () => {
   // const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
 
   // const viewerState = useRef(useLocation().state);
+
+  const [streamHlReader, setStreamReader] = useState<any>(undefined);
 
   const [url, setUrl] =
   useState<string>(new URLSearchParams(document.location.search).get("url") || "unknown");
@@ -135,6 +140,7 @@ const Viewer: React.FC = () => {
 
         const response = await fetch(API_CHECK_PDF, requestOptions);
         const reader = response.body?.getReader();
+        setStreamReader(reader);
         const decodeStream = async () => {
           if (!reader) {
             return;
@@ -206,6 +212,30 @@ const Viewer: React.FC = () => {
       );
     };
   }, [scrollToHighlightFromHash]);
+
+  useEffect( ()=> {
+    return ()=> {
+      console.log('Start cancel received highlights from server');
+      if (streamHlReader){
+        console.log('Canceling received highlights from server');
+        streamHlReader.cancel();
+        console.log('Canceled received highlights from server');
+      }
+    };
+  }, [streamHlReader]);
+
+  // useEffect(() => {
+  //   const unlisten = history.listen((location:any, action:any) => {
+  //     console.log('Route changed:', location.pathname);
+  //     // Perform any actions or logic you want when the route changes
+  //   });
+  
+  //   // Return a cleanup function to unsubscribe from the listener
+  //   return () => {
+  //     unlisten();
+  //   };
+  // }, [history]);
+  
 
   const addHighlight = (highlight: NewHighlight) => {
     setHighlights([{ ...highlight, id: getNextId() }, ...highlights]);
