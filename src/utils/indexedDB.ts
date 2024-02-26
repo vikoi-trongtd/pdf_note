@@ -2,7 +2,7 @@ export const IDB_PDF_NOTE = 'pdf_notes';
 
 export enum PdfNoteStores {
   highlightResult = "highlight_results",
-  pdfFile = "pdf_files",
+  requestsHistory = "requests_history",
 };
 
 const IDBVersion = 1;
@@ -14,28 +14,32 @@ const idb = window.indexedDB;
 // || window.msIndexedDB
 // || window.shimIndexedDB;
 
-export const openIDB = (dbName: IndexedDBNames, storeName: string): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject)=>{
+export const openIDB = (dbName: IndexedDBNames, storeName: string): Promise<IDBDatabase | undefined> => {
+  return new Promise((resolve)=>{
     // const dbVersion = IDB_VERSIONS[dbName];
     const openRequest = idb.open(dbName, IDBVersion);
   
     openRequest.onsuccess = () => {
-      console.log('openIDB', openRequest.result);
+      // console.log('openIDB', openRequest.result);
       resolve(openRequest.result);
     };
   
     openRequest.onerror = (event) => {
-      const curTarget = event.currentTarget as any; 
-      console.error('Error opening IndexedDB:', curTarget.error);
-      reject(curTarget.error);
+      const target = event.target as any; 
+      console.error('Error opening IndexedDB:', target.error);
+      resolve(undefined);
     };
 
-    openRequest.onupgradeneeded = () => {
-      console.log("openDb.onupgradeneeded");
-      const db = openRequest.result;
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
-      }
+    openRequest.onupgradeneeded = (event) => {
+      const target = event.target as any; 
+      const db = target.result;
+      // console.log("openDb.onupgradeneeded");
+      // Create all stores here
+      Object.values(PdfNoteStores).forEach((value) => {
+        if (!db.objectStoreNames.contains(value)) {
+          db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        }
+      })
     };
   
   });
@@ -45,7 +49,6 @@ export const addDataIDB = (db: IDBDatabase, storeName: string,data: any, keyVal:
   return new Promise( async(resolve) =>{
 
     if (!db) resolve(false);
-
     // Check if data is existed?
     let shouldAdd = true;
     if (keyVal){
@@ -57,22 +60,27 @@ export const addDataIDB = (db: IDBDatabase, storeName: string,data: any, keyVal:
     }
     // Do the add
     if (shouldAdd){
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
+      try{
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
 
-      const request = store.put(data);
-      request.onsuccess = (event) => {
-        console.log('Data added successfully to IndexedDB', event.currentTarget);
-        resolve(true);
-      };
-      request.onerror = (event) => {
-        const curTarget = event.currentTarget as any; 
-        console.error('Error adding data to IndexedDB:', curTarget.error);
+        const request = store.put(data);
+        request.onsuccess = () => {
+          // console.log('Data added successfully to IndexedDB', event.currentTarget);
+          resolve(true);
+        };
+        request.onerror = () => {
+          // const curTarget = event.currentTarget as any; 
+          // console.error('Error adding data to IndexedDB:', curTarget.error);
+          resolve(false);
+        };
+        // Close the resource
+        tx.oncomplete = ()=>{
+          db.close();
+        }
+      } catch (err){
+        console.trace(err);
         resolve(false);
-      };
-      // Close the resource
-      tx.oncomplete = ()=>{
-        db.close();
       }
     } else {
       // Data existed => add ok.
@@ -96,7 +104,7 @@ export const getAllDataIDB = (db: IDBDatabase, storeName: string): Promise<any[]
         listData.push(cursor.value);
         cursor.continue();
       } else {
-        console.log("Entries all displayed.", listData);
+        // console.log("Entries all displayed.", listData);
         resolve(listData);
       }
     };

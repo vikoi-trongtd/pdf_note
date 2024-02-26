@@ -48,9 +48,9 @@ const HighlightPopup = ({
 // const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 
 const Viewer: React.FC = () => {
-  const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
+  // const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
 
-  const viewerState = useRef(useLocation().state);
+  // const viewerState = useRef(useLocation().state);
 
   const [url, setUrl] =
   useState<string>(new URLSearchParams(document.location.search).get("url") || "unknown");
@@ -65,8 +65,8 @@ const Viewer: React.FC = () => {
   // useEffect(()=>{
   //   const getUrlLink = async() => {
   //     const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
-  //     const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.pdfFile);
-  //     const listPdfFiles = await getAllDataIDB(db, PdfNoteStores.pdfFile);
+  //     const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+  //     const listPdfFiles = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
   //     if (Array.isArray(listPdfFiles)){
   //       const files = listPdfFiles.find( (fileInfo)=> fileInfo.filename === filename);
   //       if (files){
@@ -83,11 +83,29 @@ const Viewer: React.FC = () => {
   // },[]);
   
   useEffect(() => {
-    const fetchData = async (requestData: any) => {
+    const getRequestData = async() => {
+      const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
+      console.log('filename from url', filename);
+      const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+      if (!db){
+        return undefined;
+      }
+      const listRequests = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
+      if (Array.isArray(listRequests)){
+        const requestOptions = listRequests.find( (reqInfo)=> reqInfo.filename === filename);
+        return requestOptions;
+      }
+    }
+
+    const fetchData = async () => {
+      const requestData: any= await getRequestData();
+      if (!requestData){
+        return;
+      }
       //
       setUrl(URL.createObjectURL(requestData.target_file));
       //
-      console.log('request data', requestData);
+      // console.log('request data', requestData);
       const myHeaders = new Headers();
       myHeaders.append("accept", "application/json");
       const formdata = new FormData();
@@ -125,7 +143,7 @@ const Viewer: React.FC = () => {
           const { value, done } = await reader.read();
   
           if (done) {
-            console.log('Got all hightlights');
+            console.log('Got all hightlights from server');
             setIsGotAllHighlight(true);
             return;
           }
@@ -147,24 +165,12 @@ const Viewer: React.FC = () => {
       } catch (err){}
     };
 
-    if (viewerState.current) {
-      console.log('Start get hightlights');
-      if (viewerState.current.extract_type){
-        fetchData(viewerState.current);
-      }
-    }
+    fetchData();
 
     return () => {
       // Cleanup code, if needed
     };
   }, []);
-
-  if (!viewerState.current) {
-    viewerState.current = savedHighlights() as Record<
-      string,
-      Array<IHighlight>
-    >;
-  }
 
   const [aiHighlights, setAIHighlights] = useState<Array<IHighlight>>([]);
 

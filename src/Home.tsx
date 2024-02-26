@@ -122,6 +122,7 @@ export default function Home() {
     const targetFilename = uniqueFileName(targetPdfFile.current?.name);
 
     const requestData = {
+      filename: targetFilename,
       extract_type: extractType === "extract_type_block" ? "block" : "sentence",
       similarity_score: sScore.toString(),
       top_k: topKMaches.toString(),
@@ -139,22 +140,19 @@ export default function Home() {
       type: "success",
       isLoading: false,
     });
-    // Store pdf file
-    // const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.pdfFile);
-    // console.log('db created', db);
-    // await addDataIDB(db, PdfNoteStores.pdfFile,{
-    //   filename: targetFilename,
-    //   blob: targetPdfFile.current,
-    // },""
-    // );
-    // //
+    // Store request data
+    const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+    if (db){
+      await addDataIDB(db, PdfNoteStores.requestsHistory,requestData,"");
+    }
+    //
     // await getAllDataIDB(db, PdfNoteStores.pdfFile);
     // Navigate without createObjectURL
     navigate(
       `/viewer?filename=${encodeURIComponent(targetFilename)}`,
       {
         replace: false,
-        state: requestData,
+        // state: requestData,
       }
     );
     // Navigate using createObjectUrl
