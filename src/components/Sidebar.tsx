@@ -1,19 +1,24 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { IHighlight } from "../react-pdf-highlighter";
 import AIText from "./AIText";
+import AICursor from "./AICursor";
 
 interface Props {
+  isGotAllHighlight: boolean;
   highlights: Array<IHighlight>;
   addAIHighlight: (newHighlight: IHighlight) => void;
 }
 
-export function Sidebar({ highlights, addAIHighlight }: Props) {
-  const [listAIText, setListAIText] = useState<JSX.Element[]>([]);
+export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props) {
   const childAITextRef = useRef();
+  const lastChildRef = useRef<HTMLDivElement>(null);
+  const [isAITextRunning, setIsAITextRunning] = useState<boolean>(false);
+  const [listAIText, setListAIText] = useState<JSX.Element[]>([]);
   const [nChild, setNChild] = useState(0);
   const addChild = useCallback((hl: IHighlight) => {
-    // console.log('nChild ', nChild);
     // Use the `React.memo` to memoize the child components
+    setIsAITextRunning(true);
+
     const MemoizedChild = React.memo(AIText);
 
     setListAIText((prevChildren) => [
@@ -23,17 +28,27 @@ export function Sidebar({ highlights, addAIHighlight }: Props) {
         ref={childAITextRef}
         id={prevChildren.length}
         highlight={hl}
-        afterTextFilled={() => setNChild((nChild) => nChild + 1)}
+        scrollToBottom={()=>{
+          lastChildRef.current?.scrollIntoView();
+        }}
+        afterTextFilled={() => {
+          setIsAITextRunning(false);
+          setNChild((nChild) => nChild + 1)
+        }
+      }
       />,
     ]);
   }, []);
 
   useEffect(() => {
-    if (nChild < highlights.length) {
+    if (nChild < highlights.length && !isAITextRunning) {
+      setIsAITextRunning(isAITextRunning => !isAITextRunning);
       addAIHighlight(highlights[nChild]);
       addChild(highlights[nChild]);
     }
   }, [addAIHighlight, addChild, highlights, nChild]);
+
+
 
   return (
     <div className="sidebar" style={{ width: "25vw" }}>
@@ -47,6 +62,9 @@ export function Sidebar({ highlights, addAIHighlight }: Props) {
       </div>
 
       <ul>{listAIText.map((AIText) => AIText)}</ul>
+      {/* <div className="text-yellow-950">Trongtd</div> */}
+      {!isGotAllHighlight && !isAITextRunning? <AICursor/> : null}
+      <div ref={lastChildRef}></div>
     </div>
   );
 }

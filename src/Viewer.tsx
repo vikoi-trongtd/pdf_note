@@ -16,6 +16,7 @@ import { Sidebar } from "./components/Sidebar";
 
 import "./styles/Viewer.css";
 import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
+import { API_CHECK_PDF } from "./data/constants";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
 
@@ -48,23 +49,91 @@ const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 const Viewer: React.FC = () => {
   const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
 
-  const rsData = useRef(
-    useLocation().state as Record<string, Array<IHighlight>>
-  );
-  if (!rsData.current) {
-    rsData.current = savedHighlights() as Record<string, Array<IHighlight>>;
+  const viewerState = useRef(useLocation().state);
+
+  const url: string =
+    new URLSearchParams(document.location.search).get("url") || PRIMARY_PDF_URL;
+  const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
+  const [isGotAllHightlight, setIsGotAllHighlight] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchData = async (requestData: any) => {
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "application/json");
+      const formdata = new FormData();
+      formdata.append(
+        "extract_type", requestData.extract_type
+      );
+      formdata.append("similarity_score", requestData.similarity_score);
+      formdata.append("top_k", requestData.top_k);
+      formdata.append("prompt", requestData.prompt);
+      formdata.append(
+        "target_file",
+        requestData.target_file as Blob,
+      );
+
+      requestData.references_file.forEach((file:any) => {
+        formdata.append("references_file", file, file.name);
+      });
+  
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: formdata,
+        redirect: "follow",
+        keepalive: true,
+      } as RequestInit;
+
+      const response = await fetch(API_CHECK_PDF, requestOptions);
+      const reader = response.body?.getReader();
+      const decodeStream = async () => {
+        if (!reader) {
+          return;
+        }
+
+        const { value, done } = await reader.read();
+
+        if (done) {
+          console.log('Got all hightlights');
+          setIsGotAllHighlight(true);
+          return;
+        }
+
+        const hlStr = new TextDecoder().decode(value);
+        let hl: IHighlight | undefined;
+        try {
+          hl = JSON.parse(hlStr) as IHighlight;
+        } catch (err) {}
+
+        if (hl) {
+          console.log('New highlight from server', hl);
+          setHighlights((highlights) => [...highlights, hl as IHighlight]);
+        }
+        // Read next chunk
+        decodeStream();
+      };
+
+      decodeStream();
+    };
+
+    if (viewerState.current) {
+      console.log('Start get hightlights');
+      fetchData(viewerState.current);
+    }
+
+    return () => {
+      // Cleanup code, if needed
+    };
+  }, []);
+
+  if (!viewerState.current) {
+    viewerState.current = savedHighlights() as Record<
+      string,
+      Array<IHighlight>
+    >;
   }
-  console.log("rsData", rsData.current);
 
-  const [url, setUrl] = useState<string>(
-    new URLSearchParams(document.location.search).get("url") || PRIMARY_PDF_URL
-  );
-  const [highlights, setHighlights] = useState<Array<IHighlight>>(
-    rsData.current[url] ? [...rsData.current[url]] : []
-  );
   const [aiHighlights, setAIHighlights] = useState<Array<IHighlight>>([]);
-
-  console.log("highlight ", highlights);
 
   const scrollViewerTo = useRef<(highlight: any) => void>(() => {});
 
@@ -100,12 +169,10 @@ const Viewer: React.FC = () => {
   }, [scrollToHighlightFromHash]);
 
   const addHighlight = (highlight: NewHighlight) => {
-    console.log("Saving highlight", highlight);
     setHighlights([{ ...highlight, id: getNextId() }, ...highlights]);
   };
 
   const addAIHighlight = useCallback((hl: IHighlight) => {
-    console.log("Saving AIhighlight", hl);
     // Scroll pdf side
     // scrollToHighlight(hl);
     setAIHighlights((hls) => [...hls, hl]);
@@ -159,7 +226,7 @@ const Viewer: React.FC = () => {
         </Link>
       </div>
 
-      <Sidebar highlights={highlights} addAIHighlight={addAIHighlight} />
+      <Sidebar highlights={highlights} addAIHighlight={addAIHighlight} isGotAllHighlight={isGotAllHightlight}/>
 
       <div style={{ height: "100vh", width: "75vw", position: "relative" }}>
         <PdfLoader url={url} beforeLoad={<Spinner />}>
