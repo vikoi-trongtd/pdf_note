@@ -3,12 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
 import GroupUpload from "./components/GroupUpload";
-// import { testHighlights } from "./test-highlights";
-
-import {openIDB, IDB_PDF_NOTE, PdfNoteStores, addDataIDB, getAllDataIDB} from './utils/indexedDB';
+import {openIDB, IDB_PDF_NOTE, PdfNoteStores, addDataIDB} from './utils/indexedDB';
 import { uniqueFileName } from "./utils/strings";
-// import { API_CHECK_PDF } from "./data/constants";
-// import useIndexedDB, { IDB__HIGHLIGHT_RESULTS } from "./hooks/useIndexDB";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -20,8 +16,6 @@ type ExtractType = "extract_type_block" | "extract_type_sentence";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  // const {addData, getAllData} = useIndexedDB({dbName: IDB__HIGHLIGHT_RESULTS, storeName: "note_requested"});
 
   const toastId = useRef<number | string>(0);
   const targetPdfFile = useRef<File | undefined>();
@@ -155,16 +149,6 @@ export default function Home() {
         // state: requestData,
       }
     );
-    // Navigate using createObjectUrl
-    // navigate(
-    //   `/viewer?filename=${encodeURIComponent(
-    //     targetFilename
-    //   )}&url=${URL.createObjectURL(targetPdfFile.current)}`,
-    //   {
-    //     replace: false,
-    //     state: requestData,
-    //   }
-    // );
   };
 
   return (
@@ -318,41 +302,3 @@ const delay = (ms: number) => {
     setTimeout(resolve, ms);
   });
 };
-
-// const dataTest1 :Record<string, Array<IHighlight>> = {
-// const dataTest1 = {
-//   "http://192.168.1.107:9007/results/test.pdf": [
-//       {
-//           "content": {
-//               "text": "Development and training of the neural network model."
-//           },
-//           "position": {
-//               "pageNumber": 3,
-//               "rects": [
-//                   {
-//                       "x1": 228.43191176470583,
-//                       "y1": 288.72030303030317,
-//                       "x2": 565.1701967230391,
-//                       "y2": 303.81515151515157,
-//                       "width": 810,
-//                       "height": 1200
-//                   }
-//               ],
-//               "boundingRect": {
-//                   "x1": 228.43191176470583,
-//                   "y1": 288.72030303030317,
-//                   "x2": 565.1701967230391,
-//                   "y2": 303.81515151515157,
-//                   "width": 810,
-//                   "height": 1200,
-//                   "pageNumber": 3
-//               }
-//           },
-//           "comment": {
-//               "text": "Reference text: This section describes the training regime for our models. \n \n Reference path: paper.pdf \n \n Reference page: 6 \n \n Explaination: Both strings discuss the process of preparing a model for machine learning tasks. The first string explicitly mentions the development and training of a neural network model, which is a type of machine learning model. The second string refers to the training regime for models, which implies the process of training a model to improve its performance. The training regime could include various steps such as data preprocessing, model selection, and model evaluation. Therefore, both strings are related as they discuss the same topic of model training in machine learning.\n                                    ",
-//               "comment": "🔥"
-//           },
-//           "id": "1123"
-//       }
-//   ]
-// }

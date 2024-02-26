@@ -42,11 +42,11 @@ export function Sidebar({ highlights, addAIHighlight, isGotAllHighlight }: Props
 
   useEffect(() => {
     if (nChild < highlights.length && !isAITextRunning) {
-      setIsAITextRunning(isAITextRunning => !isAITextRunning);
+      setIsAITextRunning(true);
       addAIHighlight(highlights[nChild]);
       addChild(highlights[nChild]);
     }
-  }, [addAIHighlight, addChild, highlights, nChild]);
+  }, [addAIHighlight, addChild, highlights, isAITextRunning, nChild]);
 
 
 

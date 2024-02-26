@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useLocation} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   PdfLoader,
@@ -47,45 +47,14 @@ const HighlightPopup = ({
     </div>
   ) : null;
 
-// const PRIMARY_PDF_URL = "http://192.168.1.107:9007/results/test.pdf";
-// const PRIMARY_PDF_URL = "https://arxiv.org/pdf/1708.08021.pdf";
 
 const Viewer: React.FC = () => {
-  // const [savedHighlights, ,] = useLocalStorage(LSI__HIGHLIGHT);
-
-  // const viewerState = useRef(useLocation().state);
-
   const [streamHlReader, setStreamReader] = useState<any>(undefined);
 
-  const [url, setUrl] =
-  useState<string>(new URLSearchParams(document.location.search).get("url") || "unknown");
-  // const [url, setUrl] =
-  // useState<string>(URL.createObjectURL(viewerState.current.target_file));
-  
-  // console.log('init url = ', url);
+  const [url, setUrl] = useState<string>("");
 
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [isGotAllHightlight, setIsGotAllHighlight] = useState<boolean>(false);
-  
-  // useEffect(()=>{
-  //   const getUrlLink = async() => {
-  //     const filename: string = new URLSearchParams(document.location.search).get("filename") || "";
-  //     const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
-  //     const listPdfFiles = await getAllDataIDB(db, PdfNoteStores.requestsHistory);
-  //     if (Array.isArray(listPdfFiles)){
-  //       const files = listPdfFiles.find( (fileInfo)=> fileInfo.filename === filename);
-  //       if (files){
-  //         console.log('got url from IDB', files);
-  //         console.log('got url from IDB, blob', files.blob);
-  //         setUrl(URL.createObjectURL(files.blob));
-          
-  //         const fr = new FileReader();
-  //         console.log("read file from IDB", fr.readAsArrayBuffer(files.blob));
-  //       }
-  //     }
-  //   }
-  //   getUrlLink();
-  // },[]);
   
   useEffect(() => {
     const getRequestData = async() => {
@@ -110,7 +79,7 @@ const Viewer: React.FC = () => {
       //
       setUrl(URL.createObjectURL(requestData.target_file));
       //
-      // console.log('request data', requestData);
+      console.log('request data', requestData);
       const myHeaders = new Headers();
       myHeaders.append("accept", "application/json");
       const formdata = new FormData();
@@ -213,6 +182,7 @@ const Viewer: React.FC = () => {
     };
   }, [scrollToHighlightFromHash]);
 
+  // Cancel the fetch stream reader when user change/leave this page.
   useEffect( ()=> {
     return ()=> {
       console.log('Start cancel received highlights from server');
@@ -224,25 +194,12 @@ const Viewer: React.FC = () => {
     };
   }, [streamHlReader]);
 
-  // useEffect(() => {
-  //   const unlisten = history.listen((location:any, action:any) => {
-  //     console.log('Route changed:', location.pathname);
-  //     // Perform any actions or logic you want when the route changes
-  //   });
-  
-  //   // Return a cleanup function to unsubscribe from the listener
-  //   return () => {
-  //     unlisten();
-  //   };
-  // }, [history]);
-  
-
   const addHighlight = (highlight: NewHighlight) => {
     setHighlights([{ ...highlight, id: getNextId() }, ...highlights]);
   };
 
   const addAIHighlight = useCallback((hl: IHighlight) => {
-    // Scroll pdf side
+    // live-scroll pdf view side
     // scrollToHighlight(hl);
     setAIHighlights((hls) => [...hls, hl]);
   }, []);
