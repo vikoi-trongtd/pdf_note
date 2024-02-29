@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
 import GroupUpload from "./components/GroupUpload";
-import {
-  openIDB,
-  IDB_PDF_NOTE,
-  PdfNoteStores,
-  addDataIDB,
-} from "./utils/indexedDB";
+// import {
+//   openIDB,
+//   IDB_PDF_NOTE,
+//   PdfNoteStores,
+//   addDataIDB,
+// } from "./utils/indexedDB";
 import { uniqueFileName } from "./utils/strings";
 
-import "react-toastify/dist/ReactToastify.css";
+// import "react-toastify/dist/ReactToastify.css";
 
 const PAGE_TITLE = "Consistency Check Demo";
 const MAX_PROMPT_LENGTH = 1000;
@@ -118,10 +118,10 @@ export default function Home() {
     }
 
     setSubmitDisabled(true);
-    const targetFilename = uniqueFileName(targetPdfFile.current?.name);
+    // unique filename to store the current request separately
+    // store File now and highlight later
 
     const requestData = {
-      filename: targetFilename,
       extract_type: extractType === "extract_type_block" ? "block" : "sentence",
       similarity_score: sScore.toString(),
       top_k: topKMaches.toString(),
@@ -139,17 +139,27 @@ export default function Home() {
       type: "success",
       isLoading: false,
     });
-    // Store request data
-    const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
-    if (db) {
-      await addDataIDB(db, PdfNoteStores.requestsHistory, requestData, "");
-    }
-    //
+    // use targetFilename as a key for each request
+    // targetFileName ~ local request key
+    const targetFilename = uniqueFileName(targetPdfFile.current?.name);
+    // // Store target_file from request data
+    // const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+    // if (db) {
+    //   await addDataIDB(
+    //     db,
+    //     PdfNoteStores.requestsHistory,
+    //     {
+    //       filename: targetFilename,
+    //       target_file: targetPdfFile.current,
+    //     },
+    //     ""
+    //   );
+    //   console.log("Stored target_file to IndexedDB done.");
+    // }
     // await getAllDataIDB(db, PdfNoteStores.pdfFile);
-    // Navigate without createObjectURL
     navigate(`/viewer?filename=${encodeURIComponent(targetFilename)}`, {
       replace: false,
-      // state: requestData,
+      state: requestData,
     });
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 
 import {
   PdfLoader,
@@ -8,25 +9,26 @@ import {
   Highlight,
   Popup,
   AreaHighlight,
-} from "./react-pdf-highlighter";
+} from "react-pdf-highlighter";
 // import { browserHistory } from 'react-router';
 
-import type { IHighlight, NewHighlight } from "./react-pdf-highlighter";
+import type { IHighlight, NewHighlight } from "react-pdf-highlighter";
 // import { testHighlights as _testHighlights } from "./test-highlights";
 import { Spinner } from "./components/Spinner";
 import { Sidebar } from "./components/Sidebar";
 
-import "./styles/Viewer.css";
 // import useLocalStorage, { LSI__HIGHLIGHT } from "./hooks/useLocalStorage";
 import { API_CHECK_PDF } from "./data/constants";
-import {
-  IDB_PDF_NOTE,
-  PdfNoteStores,
-  getAllDataIDB,
-  openIDB,
-} from "./utils/indexedDB";
+// import {
+//   IDB_PDF_NOTE,
+//   PdfNoteStores,
+//   getAllDataIDB,
+//   openIDB,
+// } from "./utils/indexedDB";
 
 // const testHighlights: Record<string, Array<IHighlight>> = _testHighlights;
+import "react-toastify/dist/ReactToastify.css";
+import "./styles/Viewer.css";
 
 const getNextId = () => String(Math.random()).slice(2);
 
@@ -52,6 +54,9 @@ const HighlightPopup = ({
   ) : null;
 
 const Viewer: React.FC = () => {
+  const viewerState = useRef(useLocation().state);
+  const toastId = useRef<number | string>(0);
+
   const [streamHlReader, setStreamReader] = useState<any>(undefined);
 
   const [url, setUrl] = useState<string>("");
@@ -59,58 +64,74 @@ const Viewer: React.FC = () => {
   const [highlights, setHighlights] = useState<Array<IHighlight>>([]);
   const [isGotAllHightlight, setIsGotAllHighlight] = useState<boolean>(false);
 
+  // Fetch highlights data
   useEffect(() => {
-    const getRequestData = async () => {
-      const filename: string =
-        new URLSearchParams(document.location.search).get("filename") || "";
-      console.log("filename from url", filename);
-      const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
-      if (!db) {
-        return undefined;
-      }
-      const listRequests = await getAllDataIDB(
-        db,
-        PdfNoteStores.requestsHistory
-      );
-      if (Array.isArray(listRequests)) {
-        const requestOptions = listRequests.find(
-          (reqInfo) => reqInfo.filename === filename
-        );
-        return requestOptions;
-      }
-    };
+    // Get target_file from local browser db (IndexedDB)
+    // const getTargetFile = async (uniqueFilename: string) => {
+    //   console.log("filename from url", uniqueFilename);
+    //   const db = await openIDB(IDB_PDF_NOTE, PdfNoteStores.requestsHistory);
+    //   if (!db) {
+    //     return undefined;
+    //   }
+    //   const listRequests = await getAllDataIDB(
+    //     db,
+    //     PdfNoteStores.requestsHistory
+    //   );
+    //   if (Array.isArray(listRequests)) {
+    //     const requestInfo = listRequests.find(
+    //       (reqInfo) => reqInfo.filename === uniqueFilename
+    //     );
+    //     return requestInfo.target_file;
+    //   }
+    //   return null;
+    // };
 
-    const fetchData = async () => {
-      const requestData: any = await getRequestData();
+    const fetchData = async (requestData: any) => {
+      // const requestData: any = await getRequestData();
       if (!requestData) {
         return;
       }
-      //
+      // For pdf viewer
       setUrl(URL.createObjectURL(requestData.target_file));
       //
       console.log("request data", requestData);
-      const myHeaders = new Headers();
-      myHeaders.append("accept", "application/json");
       const formdata = new FormData();
       formdata.append("extract_type", requestData.extract_type);
       formdata.append("similarity_score", requestData.similarity_score);
       formdata.append("top_k", requestData.top_k);
       formdata.append("prompt", requestData.prompt);
-      formdata.append("target_file", requestData.target_file as Blob);
-
+      formdata.append("target_file", requestData.target_file);
       requestData.references_file.forEach((file: any) => {
         formdata.append("references_file", file, file.name);
       });
 
       const requestOptions = {
         method: "POST",
-        headers: myHeaders,
         body: formdata,
         redirect: "follow",
         keepalive: true,
       } as RequestInit;
       try {
         const response = await fetch(API_CHECK_PDF, requestOptions);
+        console.log("response", response);
+        if (response.ok) {
+          if (toastId.current) {
+            toast.update(toastId.current, {
+              render: `Upload to server done, wait AI...`,
+              type: "success",
+              isLoading: false,
+              autoClose: 3000,
+            });
+          }
+        } else {
+          toast.update(toastId.current, {
+            render: `Call server fail!`,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+        // Read stream of highlights from response
         const reader = response.body?.getReader();
         setStreamReader(reader);
         const decodeStream = async () => {
@@ -143,7 +164,13 @@ const Viewer: React.FC = () => {
       } catch (err) {}
     };
 
-    fetchData();
+    if (viewerState.current) {
+      console.log("Start get hightlights");
+      toastId.current = toast.loading("Uploading data to server...");
+      if (viewerState.current.extract_type) {
+        fetchData(viewerState.current);
+      }
+    }
 
     return () => {
       // Cleanup code, if needed
@@ -336,6 +363,8 @@ const Viewer: React.FC = () => {
           )}
         </PdfLoader>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

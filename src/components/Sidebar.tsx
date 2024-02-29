@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
-import { IHighlight } from "../react-pdf-highlighter";
+import { IHighlight } from "react-pdf-highlighter";
 import AIText from "./AIText";
 import AICursor from "./AICursor";
 
