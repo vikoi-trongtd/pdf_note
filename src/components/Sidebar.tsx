@@ -10,9 +10,9 @@ interface Props {
 }
 
 export function Sidebar({
+  isGotAllHighlight,
   highlights,
   addAIHighlight,
-  isGotAllHighlight,
 }: Props) {
   const childAITextRef = useRef();
   const lastChildRef = useRef<HTMLDivElement>(null);

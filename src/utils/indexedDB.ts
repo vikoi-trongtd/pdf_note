@@ -37,7 +37,7 @@ export const openIDB = (dbName: IndexedDBNames, storeName: string): Promise<IDBD
       // Create all stores here
       Object.values(PdfNoteStores).forEach((value) => {
         if (!db.objectStoreNames.contains(value)) {
-          db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+          db.createObjectStore(value, { keyPath: 'id', autoIncrement: true });
         }
       })
     };

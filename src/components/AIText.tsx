@@ -22,7 +22,6 @@ const AI_CURSOR = parse("&#9724;") as string;
 const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [curComment, setCurComment] = useState<string>("");
-  const comment = props.highlight.comment?.text;
   const highlight = props.highlight;
   const isCalledNext = useRef(false); // is called AfterTextFilled
 
@@ -31,6 +30,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
   };
 
   useEffect(() => {
+    const comment = props.highlight.comment?.text;
     const callNextAIText = () => {
       isCalledNext.current = true;
       props.afterTextFilled();
@@ -61,7 +61,7 @@ const AIText: React.FC<AITextProps> = forwardRef((props: AITextProps, ref) => {
       TEXT_DISPLAY_INTERVAL
     );
     return () => clearInterval(interval);
-  }, [curComment, props, comment]);
+  }, [curComment, props]);
 
   useImperativeHandle(ref, () => ({}));
 
